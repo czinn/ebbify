@@ -22,7 +22,7 @@ impl CategoryManager {
     fn show_node(&mut self, node: &CategoryNode, ui: &mut Ui, app_data: &AppData) -> Option<u32> {
         let mut node_to_remove = None;
         ui.horizontal(|ui| {
-            ui.label(&app_data.data.categories.get(&node.id).unwrap().name);
+            ui.label(&app_data.categories().get(&node.id).unwrap().name);
             if ui.link("+").clicked() {
                 if self.new_category.is_none() {
                     self.new_category = Some(NewCategory {
@@ -52,14 +52,15 @@ impl CategoryManager {
 
     pub fn add(&mut self, ui: &mut Ui, ctx: &Context, save_file: &mut SaveFile) {
         let mut node_to_remove = None;
-        for node in save_file.app_data.category_trees.iter() {
+        for node in save_file.app_data.category_trees().iter() {
             if let Some(id) = self.show_node(node, ui, &save_file.app_data) {
                 node_to_remove = Some(id);
             }
         }
         if let Some(node_to_remove) = node_to_remove {
-            save_file.app_data.data.categories.remove(&node_to_remove);
-            save_file.app_data.recompute_category_trees();
+            save_file
+                .app_data
+                .categories_mut(|categories| categories.remove(&node_to_remove));
             save_file.modified = true;
         }
 
@@ -111,8 +112,7 @@ impl CategoryManager {
         if clicked_create {
             let next_id = save_file
                 .app_data
-                .data
-                .categories
+                .categories()
                 .last_key_value()
                 .map_or(0, |(k, _)| *k + 1);
             let NewCategory {
@@ -122,17 +122,18 @@ impl CategoryManager {
                 default_amortization_length,
                 autofocus: _,
             } = self.new_category.take().unwrap();
-            save_file.app_data.data.categories.insert(
-                next_id,
-                Category {
-                    id: next_id,
-                    name,
-                    parent_id,
-                    default_amortization_type,
-                    default_amortization_length,
-                },
-            );
-            save_file.app_data.recompute_category_trees();
+            save_file.app_data.categories_mut(|categories| {
+                categories.insert(
+                    next_id,
+                    Category {
+                        id: next_id,
+                        name,
+                        parent_id,
+                        default_amortization_type,
+                        default_amortization_length,
+                    },
+                )
+            });
             save_file.modified = true;
         }
 

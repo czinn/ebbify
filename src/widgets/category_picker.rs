@@ -28,7 +28,7 @@ impl<'a> CategoryPicker<'a> {
         ui.selectable_value(
             self.selected,
             Some(node.id),
-            &self.app_data.data.categories.get(&node.id).unwrap().name,
+            &self.app_data.categories().get(&node.id).unwrap().name,
         );
         if node.children.len() > 0 {
             ui.indent(node.id, |ui| {
@@ -41,7 +41,7 @@ impl<'a> CategoryPicker<'a> {
 
     fn selected_text(&self) -> &str {
         match &self.selected {
-            Some(selected) => &self.app_data.data.categories.get(selected).unwrap().name,
+            Some(selected) => &self.app_data.categories().get(selected).unwrap().name,
             None => "",
         }
     }
@@ -56,7 +56,7 @@ impl<'a> Widget for CategoryPicker<'a> {
                 if self.selected.is_none() || self.null_allowed {
                     ui.selectable_value(self.selected, None, "");
                 }
-                for node in self.app_data.category_trees.iter() {
+                for node in self.app_data.category_trees().iter() {
                     self.show_node(node, ui);
                 }
             })

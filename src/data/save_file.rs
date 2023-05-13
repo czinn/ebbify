@@ -43,7 +43,7 @@ impl SaveFile {
             let file = File::create(&self.path)?;
             let writer = BufWriter::new(file);
             let mut compressed_writer = Encoder::new(writer, 10)?;
-            serde_json::to_writer(&mut compressed_writer, &self.app_data.data)?;
+            serde_json::to_writer(&mut compressed_writer, self.app_data.file_data())?;
             compressed_writer.finish()?;
             self.modified = false;
         }

@@ -1,7 +1,6 @@
-use crate::components::{CategoryManager, MenuBar};
+use crate::components::MenuBar;
 use crate::data::SaveFile;
 use crate::ui_state::UiState;
-use crate::widgets::CategoryPicker;
 
 pub const APP_NAME: &str = "Ebbify";
 

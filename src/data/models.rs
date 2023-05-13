@@ -77,12 +77,12 @@ pub struct Transaction {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct FileData {
-    pub accounts: BTreeMap<u32, Account>,
-    pub balances: BTreeMap<u32, Balance>,
-    pub categories: BTreeMap<u32, Category>,
-    pub currencies: BTreeMap<u32, Currency>,
-    pub flows: BTreeMap<u32, Flow>,
-    pub transactions: BTreeMap<u32, Transaction>,
+    accounts: BTreeMap<u32, Account>,
+    balances: BTreeMap<u32, Balance>,
+    categories: BTreeMap<u32, Category>,
+    currencies: BTreeMap<u32, Currency>,
+    flows: BTreeMap<u32, Flow>,
+    transactions: BTreeMap<u32, Transaction>,
 }
 
 impl FileData {
@@ -131,10 +131,11 @@ impl CategoryNode {
 
 #[derive(Default)]
 pub struct AppData {
-    pub data: FileData,
-    pub category_trees: Vec<CategoryNode>,
+    data: FileData,
+    category_trees: Vec<CategoryNode>,
 }
 
+#[allow(dead_code)]
 impl AppData {
     pub fn from_file(data: FileData) -> Self {
         let mut t = Self {
@@ -145,7 +146,7 @@ impl AppData {
         t
     }
 
-    pub fn recompute_category_trees(&mut self) {
+    fn recompute_category_trees(&mut self) {
         let mut roots: Vec<u32> = Vec::new();
         let mut children_map: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
         for (id, category) in self.data.categories.iter() {
@@ -161,5 +162,81 @@ impl AppData {
             .into_iter()
             .map(|id| CategoryNode::new(id, &children_map))
             .collect();
+    }
+
+    pub fn file_data(&self) -> &FileData {
+        &self.data
+    }
+
+    pub fn accounts(&self) -> &BTreeMap<u32, Account> {
+        &self.data.accounts
+    }
+
+    pub fn accounts_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Account>) -> R,
+    {
+        f(&mut self.data.accounts)
+    }
+
+    pub fn balances(&self) -> &BTreeMap<u32, Balance> {
+        &self.data.balances
+    }
+
+    pub fn balances_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Balance>) -> R,
+    {
+        f(&mut self.data.balances)
+    }
+
+    pub fn categories(&self) -> &BTreeMap<u32, Category> {
+        &self.data.categories
+    }
+
+    pub fn categories_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Category>) -> R,
+    {
+        let result = f(&mut self.data.categories);
+        self.recompute_category_trees();
+        result
+    }
+
+    pub fn currencies(&self) -> &BTreeMap<u32, Currency> {
+        &self.data.currencies
+    }
+
+    pub fn currencies_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Currency>) -> R,
+    {
+        f(&mut self.data.currencies)
+    }
+
+    pub fn flows(&self) -> &BTreeMap<u32, Flow> {
+        &self.data.flows
+    }
+
+    pub fn flows_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Flow>) -> R,
+    {
+        f(&mut self.data.flows)
+    }
+
+    pub fn transactions(&self) -> &BTreeMap<u32, Transaction> {
+        &self.data.transactions
+    }
+
+    pub fn transactions_mut<F, R>(&mut self, f: F) -> R
+    where
+        F: FnOnce(&mut BTreeMap<u32, Transaction>) -> R,
+    {
+        f(&mut self.data.transactions)
+    }
+
+    pub fn category_trees(&self) -> &Vec<CategoryNode> {
+        &self.category_trees
     }
 }
