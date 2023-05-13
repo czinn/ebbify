@@ -10,7 +10,6 @@ use crate::result::Result;
 pub struct SaveFile {
     pub path: PathBuf,
     pub app_data: AppData,
-    pub modified: bool,
     pub is_sample: bool,
 }
 
@@ -18,8 +17,7 @@ impl SaveFile {
     pub fn new(path: PathBuf) -> Self {
         Self {
             path,
-            app_data: Default::default(),
-            modified: true,
+            app_data: AppData::new(),
             is_sample: false,
         }
     }
@@ -33,7 +31,6 @@ impl SaveFile {
         Ok(Self {
             path,
             app_data,
-            modified: false,
             is_sample: false,
         })
     }
@@ -45,7 +42,7 @@ impl SaveFile {
             let mut compressed_writer = Encoder::new(writer, 10)?;
             serde_json::to_writer(&mut compressed_writer, self.app_data.file_data())?;
             compressed_writer.finish()?;
-            self.modified = false;
+            self.app_data.mark_saved();
         }
         Ok(())
     }
@@ -56,7 +53,6 @@ impl SaveFile {
         Self {
             path: Default::default(),
             app_data,
-            modified: false,
             is_sample: true,
         }
     }

@@ -38,7 +38,11 @@ impl eframe::App for App {
                     .file_name()
                     .unwrap_or(std::ffi::OsStr::new("Sample"))
                     .to_string_lossy(),
-                if save_file.modified { "*" } else { "" }
+                if save_file.app_data.is_modified() {
+                    "*"
+                } else {
+                    ""
+                }
             ),
             None => APP_NAME.into(),
         };
@@ -54,7 +58,10 @@ impl eframe::App for App {
             }
         });
         egui::CentralPanel::default().show(ctx, |ui| match &mut self.save_file {
-            Some(save_file) => self.ui_state.category_manager.add(ui, ctx, save_file),
+            Some(save_file) => self
+                .ui_state
+                .category_manager
+                .add(ui, ctx, &mut save_file.app_data),
             None => {
                 ui.heading("Load a budget");
             }

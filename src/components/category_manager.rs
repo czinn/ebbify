@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, Ui, Window};
 
-use crate::data::{AmortizationType, AppData, Category, CategoryNode, SaveFile};
+use crate::data::{AmortizationType, AppData, Category, CategoryNode};
 use crate::widgets::CategoryPicker;
 
 #[derive(Default)]
@@ -50,18 +50,15 @@ impl CategoryManager {
         node_to_remove
     }
 
-    pub fn add(&mut self, ui: &mut Ui, ctx: &Context, save_file: &mut SaveFile) {
+    pub fn add(&mut self, ui: &mut Ui, ctx: &Context, app_data: &mut AppData) {
         let mut node_to_remove = None;
-        for node in save_file.app_data.category_trees().iter() {
-            if let Some(id) = self.show_node(node, ui, &save_file.app_data) {
+        for node in app_data.category_trees().iter() {
+            if let Some(id) = self.show_node(node, ui, app_data) {
                 node_to_remove = Some(id);
             }
         }
         if let Some(node_to_remove) = node_to_remove {
-            save_file
-                .app_data
-                .categories_mut(|categories| categories.remove(&node_to_remove));
-            save_file.modified = true;
+            app_data.categories_mut(|categories| categories.remove(&node_to_remove));
         }
 
         if ui.button("New Category").clicked() {
@@ -96,7 +93,7 @@ impl CategoryManager {
                                 "new-category-parent-picker",
                                 &mut new_category.parent_id,
                                 true,
-                                &save_file.app_data,
+                                app_data,
                             ));
                             ui.end_row();
                         });
@@ -110,8 +107,7 @@ impl CategoryManager {
         }
 
         if clicked_create {
-            let next_id = save_file
-                .app_data
+            let next_id = app_data
                 .categories()
                 .last_key_value()
                 .map_or(0, |(k, _)| *k + 1);
@@ -122,7 +118,7 @@ impl CategoryManager {
                 default_amortization_length,
                 autofocus: _,
             } = self.new_category.take().unwrap();
-            save_file.app_data.categories_mut(|categories| {
+            app_data.categories_mut(|categories| {
                 categories.insert(
                     next_id,
                     Category {
@@ -134,7 +130,6 @@ impl CategoryManager {
                     },
                 )
             });
-            save_file.modified = true;
         }
 
         if !is_open || clicked_create {

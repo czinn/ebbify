@@ -129,17 +129,26 @@ impl CategoryNode {
     }
 }
 
-#[derive(Default)]
 pub struct AppData {
     data: FileData,
+    modified: bool,
     category_trees: Vec<CategoryNode>,
 }
 
 #[allow(dead_code)]
 impl AppData {
+    pub fn new() -> Self {
+        Self {
+            data: Default::default(),
+            modified: true,
+            category_trees: Vec::new(),
+        }
+    }
+
     pub fn from_file(data: FileData) -> Self {
         let mut t = Self {
             data,
+            modified: false,
             category_trees: Vec::new(),
         };
         t.recompute_category_trees();
@@ -164,6 +173,14 @@ impl AppData {
             .collect();
     }
 
+    pub fn is_modified(&self) -> bool {
+        self.modified
+    }
+
+    pub fn mark_saved(&mut self) {
+        self.modified = false;
+    }
+
     pub fn file_data(&self) -> &FileData {
         &self.data
     }
@@ -176,6 +193,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Account>) -> R,
     {
+        self.modified = true;
         f(&mut self.data.accounts)
     }
 
@@ -187,6 +205,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Balance>) -> R,
     {
+        self.modified = true;
         f(&mut self.data.balances)
     }
 
@@ -198,6 +217,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Category>) -> R,
     {
+        self.modified = true;
         let result = f(&mut self.data.categories);
         self.recompute_category_trees();
         result
@@ -211,6 +231,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Currency>) -> R,
     {
+        self.modified = true;
         f(&mut self.data.currencies)
     }
 
@@ -222,6 +243,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Flow>) -> R,
     {
+        self.modified = true;
         f(&mut self.data.flows)
     }
 
@@ -233,6 +255,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Transaction>) -> R,
     {
+        self.modified = true;
         f(&mut self.data.transactions)
     }
 
