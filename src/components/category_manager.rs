@@ -53,7 +53,9 @@ impl CategoryManager {
             }
             if ui.link("Edit").clicked() {
                 if self.category_editor.is_none() {
-                    self.category_editor = Some(CategoryEditor::of_category(app_data.categories().get(&node.id).unwrap()));
+                    self.category_editor = Some(CategoryEditor::of_category(
+                        app_data.categories().get(&node.id).unwrap(),
+                    ));
                 }
             }
         });
@@ -140,15 +142,13 @@ impl CategoryManager {
                 default_amortization_length,
                 autofocus: _,
             } = self.category_editor.take().unwrap();
-            let id =
-                match id {
-                    Some(id) => id,
-                    None => 
-                app_data
-                .categories()
-                .last_key_value()
-                .map_or(0, |(k, _)| *k + 1)
-                };
+            let id = match id {
+                Some(id) => id,
+                None => app_data
+                    .categories()
+                    .last_key_value()
+                    .map_or(0, |(k, _)| *k + 1),
+            };
             app_data.categories_mut(|categories| {
                 categories.insert(
                     id,

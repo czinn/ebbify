@@ -33,7 +33,7 @@ impl<'a> CategoryPicker<'a> {
                 if node.id == *id {
                     return;
                 }
-            },
+            }
             None => (),
         }
         ui.selectable_value(

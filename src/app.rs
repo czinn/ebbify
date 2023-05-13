@@ -58,10 +58,12 @@ impl eframe::App for App {
             }
         });
         egui::CentralPanel::default().show(ctx, |ui| match &mut self.save_file {
-            Some(save_file) => self
-                .ui_state
-                .category_manager
-                .add(ui, ctx, &mut save_file.app_data),
+            Some(save_file) => {
+                self.ui_state.add_tab_selector(ui);
+                ui.separator();
+                self.ui_state
+                    .add_current_tab(ui, ctx, &mut save_file.app_data);
+            }
             None => {
                 ui.heading("Load a budget");
             }

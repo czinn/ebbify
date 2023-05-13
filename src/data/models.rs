@@ -97,7 +97,10 @@ impl FileData {
                 "2": {"id": 2, "name": "Restaurants", "parent_id": 0},
                 "3": {"id": 3, "name": "Transit", "parent_id": null}
             },
-            "currencies":{},
+            "currencies":{
+                "0": {"id": 0, "code": "USD", "major": 100, "equivalent_usd": 1.0},
+                "1": {"id": 1, "code": "CAD", "major": 100, "equivalent_usd": 0.73214}
+            },
             "flows":{},
             "transactions":{}
         }"#;
