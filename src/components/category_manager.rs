@@ -4,7 +4,8 @@ use crate::data::{AmortizationType, AppData, Category, CategoryNode};
 use crate::widgets::CategoryPicker;
 
 #[derive(Default)]
-struct NewCategory {
+struct CategoryEditor {
+    id: Option<u32>,
     name: String,
     parent_id: Option<u32>,
     default_amortization_type: Option<AmortizationType>,
@@ -12,9 +13,22 @@ struct NewCategory {
     autofocus: bool,
 }
 
+impl CategoryEditor {
+    fn of_category(category: &Category) -> Self {
+        Self {
+            id: Some(category.id),
+            name: category.name.clone(),
+            parent_id: category.parent_id,
+            default_amortization_type: category.default_amortization_type,
+            default_amortization_length: category.default_amortization_length,
+            autofocus: true,
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct CategoryManager {
-    new_category: Option<NewCategory>,
+    category_editor: Option<CategoryEditor>,
 }
 
 impl CategoryManager {
@@ -24,8 +38,8 @@ impl CategoryManager {
         ui.horizontal(|ui| {
             ui.label(&app_data.categories().get(&node.id).unwrap().name);
             if ui.link("+").clicked() {
-                if self.new_category.is_none() {
-                    self.new_category = Some(NewCategory {
+                if self.category_editor.is_none() {
+                    self.category_editor = Some(CategoryEditor {
                         parent_id: Some(node.id),
                         autofocus: true,
                         ..Default::default()
@@ -35,6 +49,11 @@ impl CategoryManager {
             if node.children.len() == 0 {
                 if ui.link("-").clicked() {
                     node_to_remove = Some(node.id);
+                }
+            }
+            if ui.link("Edit").clicked() {
+                if self.category_editor.is_none() {
+                    self.category_editor = Some(CategoryEditor::of_category(app_data.categories().get(&node.id).unwrap()));
                 }
             }
         });
@@ -62,7 +81,7 @@ impl CategoryManager {
         }
 
         if ui.button("New Category").clicked() {
-            self.new_category = Some(NewCategory {
+            self.category_editor = Some(CategoryEditor {
                 autofocus: true,
                 ..Default::default()
             });
@@ -70,20 +89,25 @@ impl CategoryManager {
 
         let mut is_open = true;
         let mut clicked_create = false;
-        if let Some(new_category) = &mut self.new_category {
-            Window::new("New Category")
+        if let Some(category_editor) = &mut self.category_editor {
+            let (title, button_text) = if category_editor.id.is_some() {
+                ("Edit Category", "Save")
+            } else {
+                ("New Category", "Create")
+            };
+            Window::new(title)
                 .open(&mut is_open)
                 .collapsible(false)
                 .show(ctx, |ui| {
-                    Grid::new("new-category-grid")
+                    Grid::new("category-editor-grid")
                         .num_columns(2)
                         .spacing([40.0, 4.0])
                         .striped(true)
                         .show(ui, |ui| {
                             ui.label("Name");
-                            let resp = ui.text_edit_singleline(&mut new_category.name);
-                            if new_category.autofocus {
-                                new_category.autofocus = false;
+                            let resp = ui.text_edit_singleline(&mut category_editor.name);
+                            if category_editor.autofocus {
+                                category_editor.autofocus = false;
                                 ui.memory_mut(|m| m.request_focus(resp.id));
                             }
                             ui.end_row();
@@ -91,14 +115,15 @@ impl CategoryManager {
                             ui.label("Parent category");
                             ui.add(CategoryPicker::new(
                                 "new-category-parent-picker",
-                                &mut new_category.parent_id,
+                                &mut category_editor.parent_id,
                                 true,
+                                &category_editor.id,
                                 app_data,
                             ));
                             ui.end_row();
                         });
                     if ui
-                        .add_enabled(new_category.name.len() > 0, Button::new("Create"))
+                        .add_enabled(category_editor.name.len() > 0, Button::new(button_text))
                         .clicked()
                     {
                         clicked_create = true;
@@ -107,22 +132,28 @@ impl CategoryManager {
         }
 
         if clicked_create {
-            let next_id = app_data
-                .categories()
-                .last_key_value()
-                .map_or(0, |(k, _)| *k + 1);
-            let NewCategory {
+            let CategoryEditor {
+                id,
                 name,
                 parent_id,
                 default_amortization_type,
                 default_amortization_length,
                 autofocus: _,
-            } = self.new_category.take().unwrap();
+            } = self.category_editor.take().unwrap();
+            let id =
+                match id {
+                    Some(id) => id,
+                    None => 
+                app_data
+                .categories()
+                .last_key_value()
+                .map_or(0, |(k, _)| *k + 1)
+                };
             app_data.categories_mut(|categories| {
                 categories.insert(
-                    next_id,
+                    id,
                     Category {
-                        id: next_id,
+                        id,
                         name,
                         parent_id,
                         default_amortization_type,
@@ -133,7 +164,7 @@ impl CategoryManager {
         }
 
         if !is_open || clicked_create {
-            self.new_category = None;
+            self.category_editor = None;
         }
     }
 }

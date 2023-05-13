@@ -6,6 +6,7 @@ pub struct CategoryPicker<'a> {
     id_source: &'a str,
     selected: &'a mut Option<u32>,
     null_allowed: bool,
+    exclude_id: &'a Option<u32>,
     app_data: &'a AppData,
 }
 
@@ -14,17 +15,27 @@ impl<'a> CategoryPicker<'a> {
         id_source: &'a str,
         selected: &'a mut Option<u32>,
         null_allowed: bool,
+        exclude_id: &'a Option<u32>,
         app_data: &'a AppData,
     ) -> Self {
         Self {
             id_source,
             selected,
             null_allowed,
+            exclude_id,
             app_data,
         }
     }
 
     fn show_node(&mut self, node: &CategoryNode, ui: &mut Ui) {
+        match self.exclude_id {
+            Some(id) => {
+                if node.id == *id {
+                    return;
+                }
+            },
+            None => (),
+        }
         ui.selectable_value(
             self.selected,
             Some(node.id),
