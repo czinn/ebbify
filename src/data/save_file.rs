@@ -11,14 +11,18 @@ pub struct SaveFile {
     pub path: PathBuf,
     pub app_data: AppData,
     pub is_sample: bool,
+    pub saved_modification: u32,
 }
 
 impl SaveFile {
     pub fn new(path: PathBuf) -> Self {
+        let app_data = AppData::new();
+        let saved_modification = app_data.modification_count();
         Self {
             path,
-            app_data: AppData::new(),
+            app_data,
             is_sample: false,
+            saved_modification,
         }
     }
 
@@ -28,10 +32,12 @@ impl SaveFile {
         let decompressed_reader = Decoder::new(reader)?;
         let file_data: FileData = serde_json::from_reader(decompressed_reader)?;
         let app_data = AppData::from_file(file_data);
+        let saved_modification = app_data.modification_count();
         Ok(Self {
             path,
             app_data,
             is_sample: false,
+            saved_modification,
         })
     }
 
@@ -42,7 +48,7 @@ impl SaveFile {
             let mut compressed_writer = Encoder::new(writer, 10)?;
             serde_json::to_writer(&mut compressed_writer, &self.app_data.file_data())?;
             compressed_writer.finish()?;
-            self.app_data.mark_saved();
+            self.saved_modification = self.app_data.modification_count();
         }
         Ok(())
     }
@@ -50,10 +56,16 @@ impl SaveFile {
     pub fn load_sample() -> Self {
         let file_data = FileData::sample_data();
         let app_data = AppData::from_file(file_data);
+        let saved_modification = app_data.modification_count();
         Self {
             path: Default::default(),
             app_data,
             is_sample: true,
+            saved_modification,
         }
+    }
+
+    pub fn is_modified(&self) -> bool {
+        self.app_data.modification_count() != self.saved_modification
     }
 }

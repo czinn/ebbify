@@ -1,6 +1,6 @@
 use egui::{ComboBox, Response, Ui, Widget};
 
-use crate::data::{AppData, Currency};
+use crate::data::AppData;
 
 pub struct CurrencyPicker<'a> {
     id_source: &'a str,

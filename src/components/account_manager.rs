@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, RichText, Ui, Window};
 
-use crate::data::{Account, AmortizationType, AppData, Currency, Balance};
+use crate::data::{Account, AppData, Balance};
 use crate::widgets::CurrencyPicker;
 
 struct AccountEditor {

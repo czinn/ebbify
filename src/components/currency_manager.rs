@@ -1,7 +1,6 @@
 use egui::{Button, Context, DragValue, Grid, RichText, Ui, Window};
 
-use crate::data::{AmortizationType, AppData, Currency};
-use crate::widgets::CategoryPicker;
+use crate::data::{AppData, Currency};
 
 struct CurrencyEditor {
     id: Option<u32>,

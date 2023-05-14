@@ -38,7 +38,7 @@ impl eframe::App for App {
                     .file_name()
                     .unwrap_or(std::ffi::OsStr::new("Sample"))
                     .to_string_lossy(),
-                if save_file.app_data.is_modified() {
+                if save_file.is_modified() {
                     "*"
                 } else {
                     ""

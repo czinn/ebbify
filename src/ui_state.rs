@@ -44,7 +44,6 @@ impl UiState {
             Tab::AccountManager => self.account_manager.add(ui, ctx, app_data),
             Tab::Transactions => {
                 TransactionList::new(
-                    "transaction-list",
                     &app_data.transactions().keys().map(|i| *i).collect(),
                     app_data,
                 )

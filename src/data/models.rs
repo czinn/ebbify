@@ -209,13 +209,16 @@ impl CategoryNode {
 }
 
 pub struct AppData {
+    // Core data structures
     accounts: BTreeMap<u32, Account>,
     categories: BTreeMap<u32, Category>,
     currencies: BTreeMap<u32, Currency>,
     flows: BTreeMap<u32, Flow>,
     transactions: BTreeMap<u32, Transaction>,
     transaction_groups: BTreeMap<u32, TransactionGroup>,
-    modified: bool,
+    // Modification count
+    modification_count: u32,
+    // Derived data structures
     category_trees: Vec<CategoryNode>,
 }
 
@@ -229,7 +232,7 @@ impl AppData {
             flows: Default::default(),
             transactions: Default::default(),
             transaction_groups: Default::default(),
-            modified: true,
+            modification_count: 0,
             category_trees: Vec::new(),
         }
     }
@@ -242,7 +245,7 @@ impl AppData {
             flows: data.flows.into_iter().map(|x| (x.id, x)).collect(),
             transactions: data.transactions.into_iter().map(|x| (x.id, x)).collect(),
             transaction_groups: data.transaction_groups.into_iter().map(|x| (x.id, x)).collect(),
-            modified: false,
+            modification_count: 0,
             category_trees: Vec::new(),
         };
         t.recompute_category_trees();
@@ -267,12 +270,8 @@ impl AppData {
             .collect();
     }
 
-    pub fn is_modified(&self) -> bool {
-        self.modified
-    }
-
-    pub fn mark_saved(&mut self) {
-        self.modified = false;
+    pub fn modification_count(&self) -> u32 {
+        self.modification_count
     }
 
     pub fn file_data<'a>(&'a self) -> FileDataBorrowed<'a> {
@@ -294,7 +293,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Account>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         f(&mut self.accounts)
     }
 
@@ -306,7 +305,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Category>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         let result = f(&mut self.categories);
         self.recompute_category_trees();
         result
@@ -320,7 +319,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Currency>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         f(&mut self.currencies)
     }
 
@@ -332,7 +331,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Flow>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         f(&mut self.flows)
     }
 
@@ -344,7 +343,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, Transaction>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         f(&mut self.transactions)
     }
 
@@ -356,7 +355,7 @@ impl AppData {
     where
         F: FnOnce(&mut BTreeMap<u32, TransactionGroup>) -> R,
     {
-        self.modified = true;
+        self.modification_count += 1;
         f(&mut self.transaction_groups)
     }
 

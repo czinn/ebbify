@@ -1,21 +1,19 @@
 use std::collections::HashSet;
 
-use egui::{FontSelection, Label, Response, RichText, Ui, Widget};
+use egui::{FontSelection, Label, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
 use crate::data::AppData;
 
 pub struct TransactionList<'a> {
-    id_source: &'a str,
     transaction_ids: &'a Vec<u32>,
     app_data: &'a AppData,
     selection: Option<&'a mut HashSet<u32>>,
 }
 
 impl<'a> TransactionList<'a> {
-    pub fn new(id_source: &'a str, transaction_ids: &'a Vec<u32>, app_data: &'a AppData) -> Self {
+    pub fn new(transaction_ids: &'a Vec<u32>, app_data: &'a AppData) -> Self {
         Self {
-            id_source,
             transaction_ids,
             app_data,
             selection: None,
@@ -35,7 +33,7 @@ impl<'a> TransactionList<'a> {
             .striped(true)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center));
         let builder = match &self.selection {
-            Some(selection) => builder.column(Column::auto()),
+            Some(_selection) => builder.column(Column::auto()),
             None => builder,
         };
         builder
@@ -81,7 +79,7 @@ impl<'a> TransactionList<'a> {
                     ui.label(RichText::new("Amount").strong());
                 });
             })
-            .body(|mut body| {
+            .body(|body| {
                 body.rows(
                     row_height,
                     self.transaction_ids.len(),
