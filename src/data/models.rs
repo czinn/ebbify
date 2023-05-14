@@ -156,14 +156,17 @@ impl FileData {
         let mut data: FileData = serde_json::from_str(data).unwrap();
 
         for id in 0..1000 {
-            data.transactions.insert(id, Transaction {
+            data.transactions.insert(
                 id,
-                account_id: id % 3,
-                date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
-                description: format!("Transaction {}", id).into(),
-                amount: ((id as i32) % 10) * 10 - 50,
-                transaction_group_id: None,
-            });
+                Transaction {
+                    id,
+                    account_id: id % 3,
+                    date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
+                    description: format!("Transaction {}", id).into(),
+                    amount: ((id as i32) % 10) * 10 - 50,
+                    transaction_group_id: None,
+                },
+            );
         }
 
         data

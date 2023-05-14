@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use egui::{Context, Ui};
 
 use crate::components::{AccountManager, CategoryManager, CurrencyManager, TransactionList};
@@ -18,6 +20,7 @@ pub struct UiState {
     pub category_manager: CategoryManager,
     pub currency_manager: CurrencyManager,
     pub account_manager: AccountManager,
+    pub transaction_selection: HashSet<u32>,
 }
 
 impl UiState {
@@ -40,8 +43,14 @@ impl UiState {
             Tab::CurrencyManager => self.currency_manager.add(ui, ctx, app_data),
             Tab::AccountManager => self.account_manager.add(ui, ctx, app_data),
             Tab::Transactions => {
-                TransactionList::new("transaction-list", &app_data.transactions().keys().map(|i| *i).collect(), app_data).add(ui);
-            },
+                TransactionList::new(
+                    "transaction-list",
+                    &app_data.transactions().keys().map(|i| *i).collect(),
+                    app_data,
+                )
+                .selection(&mut self.transaction_selection)
+                .add(ui);
+            }
         }
     }
 }
