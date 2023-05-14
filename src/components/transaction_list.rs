@@ -63,7 +63,7 @@ impl<'a> TransactionList<'a> {
                                 }
                             }
                         });
-                    },
+                    }
                     None => (),
                 }
                 header.col(|ui| {
@@ -113,7 +113,7 @@ impl<'a> TransactionList<'a> {
                                         (*selection).remove(&transaction.id);
                                     }
                                 }
-                            },
+                            }
                             None => (),
                         }
                         row.col(|ui| {

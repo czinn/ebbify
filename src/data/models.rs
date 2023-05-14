@@ -96,7 +96,6 @@ pub struct FileDataBorrowed<'a> {
     transaction_groups: Vec<&'a TransactionGroup>,
 }
 
-
 impl FileData {
     pub fn sample_data() -> Self {
         let data = r#"
@@ -169,16 +168,14 @@ impl FileData {
         let mut data: FileData = serde_json::from_str(data).unwrap();
 
         for id in 0..1000 {
-            data.transactions.push(
-                Transaction {
-                    id,
-                    account_id: id % 3,
-                    date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
-                    description: format!("Transaction {}", id).into(),
-                    amount: ((id as i32) % 10) * 10 - 50,
-                    transaction_group_id: None,
-                },
-            );
+            data.transactions.push(Transaction {
+                id,
+                account_id: id % 3,
+                date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
+                description: format!("Transaction {}", id).into(),
+                amount: ((id as i32) % 10) * 10 - 50,
+                transaction_group_id: None,
+            });
         }
 
         data
@@ -244,7 +241,11 @@ impl AppData {
             currencies: data.currencies.into_iter().map(|x| (x.id, x)).collect(),
             flows: data.flows.into_iter().map(|x| (x.id, x)).collect(),
             transactions: data.transactions.into_iter().map(|x| (x.id, x)).collect(),
-            transaction_groups: data.transaction_groups.into_iter().map(|x| (x.id, x)).collect(),
+            transaction_groups: data
+                .transaction_groups
+                .into_iter()
+                .map(|x| (x.id, x))
+                .collect(),
             modification_count: 0,
             category_trees: Vec::new(),
         };
