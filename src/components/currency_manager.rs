@@ -1,4 +1,4 @@
-use egui::{Button, Context, Grid, RichText, Ui, Window, DragValue};
+use egui::{Button, Context, DragValue, Grid, RichText, Ui, Window};
 
 use crate::data::{AmortizationType, AppData, Currency};
 use crate::widgets::CategoryPicker;
@@ -87,7 +87,7 @@ impl CurrencyManager {
                 .open(&mut is_open)
                 .collapsible(false)
                 .show(ctx, |ui| {
-                    Grid::new("category-editor-grid")
+                    Grid::new("currency-editor-grid")
                         .num_columns(2)
                         .spacing([40.0, 4.0])
                         .striped(true)
@@ -101,7 +101,11 @@ impl CurrencyManager {
                             ui.end_row();
 
                             ui.label("Equivalent USD");
-                            ui.add(DragValue::new(&mut currency_editor.equivalent_usd).speed(0.01).min_decimals(2));
+                            ui.add(
+                                DragValue::new(&mut currency_editor.equivalent_usd)
+                                    .speed(0.01)
+                                    .min_decimals(2),
+                            );
                             ui.end_row();
 
                             ui.label("Minor to Major");

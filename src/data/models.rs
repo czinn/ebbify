@@ -88,22 +88,68 @@ pub struct FileData {
 impl FileData {
     pub fn sample_data() -> Self {
         let data = r#"
-        {
-            "accounts":{},
-            "balances":{},
-            "categories":{
-                "0": {"id": 0, "name": "Food", "parent_id": null},
-                "1": {"id": 1, "name": "Groceries", "parent_id": 0},
-                "2": {"id": 2, "name": "Restaurants", "parent_id": 0},
-                "3": {"id": 3, "name": "Transit", "parent_id": null}
-            },
-            "currencies":{
-                "0": {"id": 0, "code": "USD", "major": 100, "equivalent_usd": 1.0},
-                "1": {"id": 1, "code": "CAD", "major": 100, "equivalent_usd": 0.73214}
-            },
-            "flows":{},
-            "transactions":{}
-        }"#;
+{
+  "accounts": {
+    "0": {
+      "id": 0,
+      "name": "Debit Account",
+      "currency_id": 0,
+      "debit_account": true
+    },
+    "1": {
+      "id": 1,
+      "name": "Credit Account",
+      "currency_id": 0,
+      "debit_account": false
+    },
+    "2": {
+      "id": 2,
+      "name": "CAD Credit",
+      "currency_id": 1,
+      "debit_account": false
+    }
+  },
+  "balances": {},
+  "categories": {
+    "0": {
+      "id": 0,
+      "name": "Food",
+      "parent_id": null
+    },
+    "1": {
+      "id": 1,
+      "name": "Groceries",
+      "parent_id": 0
+    },
+    "2": {
+      "id": 2,
+      "name": "Restaurants",
+      "parent_id": 0
+    },
+    "3": {
+      "id": 3,
+      "name": "Transit",
+      "parent_id": null
+    }
+  },
+  "currencies": {
+    "0": {
+      "id": 0,
+      "code": "USD",
+      "major": 100,
+      "equivalent_usd": 1
+    },
+    "1": {
+      "id": 1,
+      "code": "CAD",
+      "major": 100,
+      "equivalent_usd": 0.73214
+    }
+  },
+  "flows": {},
+  "transactions": {}
+}
+        "#;
 
         serde_json::from_str(data).unwrap()
     }
