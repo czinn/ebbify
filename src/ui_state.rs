@@ -1,6 +1,6 @@
 use egui::{Context, Ui};
 
-use crate::components::{AccountManager, CategoryManager, CurrencyManager};
+use crate::components::{AccountManager, CategoryManager, CurrencyManager, TransactionList};
 use crate::data::AppData;
 
 #[derive(Default, PartialEq, Eq, Clone, Copy)]
@@ -9,6 +9,7 @@ pub enum Tab {
     CategoryManager,
     CurrencyManager,
     AccountManager,
+    Transactions,
 }
 
 #[derive(Default)]
@@ -26,6 +27,7 @@ impl UiState {
                 (Tab::CategoryManager, "Categories"),
                 (Tab::CurrencyManager, "Currencies"),
                 (Tab::AccountManager, "Accounts"),
+                (Tab::Transactions, "Transactions"),
             ] {
                 ui.selectable_value(&mut self.current_tab, *tab, *name);
             }
@@ -37,6 +39,9 @@ impl UiState {
             Tab::CategoryManager => self.category_manager.add(ui, ctx, app_data),
             Tab::CurrencyManager => self.currency_manager.add(ui, ctx, app_data),
             Tab::AccountManager => self.account_manager.add(ui, ctx, app_data),
+            Tab::Transactions => {
+                TransactionList::new("transaction-list", &app_data.transactions().keys().map(|i| *i).collect(), app_data).add(ui);
+            },
         }
     }
 }

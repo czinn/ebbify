@@ -63,6 +63,8 @@ pub struct Flow {
 #[derive(Serialize, Deserialize)]
 pub struct TransactionGroup {
     pub id: u32,
+    pub transaction_ids: Vec<u32>,
+    pub flow_ids: Vec<u32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -151,7 +153,20 @@ impl FileData {
 }
         "#;
 
-        serde_json::from_str(data).unwrap()
+        let mut data: FileData = serde_json::from_str(data).unwrap();
+
+        for id in 0..1000 {
+            data.transactions.insert(id, Transaction {
+                id,
+                account_id: id % 3,
+                date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
+                description: format!("Transaction {}", id).into(),
+                amount: ((id as i32) % 10) * 10 - 50,
+                transaction_group_id: None,
+            });
+        }
+
+        data
     }
 }
 
