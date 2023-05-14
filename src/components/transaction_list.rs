@@ -44,8 +44,29 @@ impl<'a> TransactionList<'a> {
             .column(Column::remainder())
             .column(Column::auto().at_least(100.0))
             .header(row_height, |mut header| {
-                if self.selection.is_some() {
-                    header.col(|ui| {});
+                let Self {
+                    selection,
+                    transaction_ids,
+                    ..
+                } = &mut self;
+                match selection {
+                    Some(selection) => {
+                        header.col(|ui| {
+                            let all_selected = selection.len() == transaction_ids.len();
+                            let mut all_checked = all_selected;
+                            ui.checkbox(&mut all_checked, "");
+                            if all_checked != all_selected {
+                                if all_checked {
+                                    transaction_ids.iter().for_each(|id| {
+                                        selection.insert(*id);
+                                    });
+                                } else {
+                                    selection.clear();
+                                }
+                            }
+                        });
+                    },
+                    None => (),
                 }
                 header.col(|ui| {
                     ui.label(RichText::new("Date").strong());
