@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, RichText, Ui, Window};
 
-use crate::data::{Account, AmortizationType, AppData, Currency};
+use crate::data::{Account, AmortizationType, AppData, Currency, Balance};
 use crate::widgets::CurrencyPicker;
 
 struct AccountEditor {
@@ -8,6 +8,7 @@ struct AccountEditor {
     name: String,
     currency_id: Option<u32>,
     debit_account: bool,
+    balances: Vec<Balance>,
     autofocus: bool,
 }
 
@@ -18,6 +19,7 @@ impl Default for AccountEditor {
             name: Default::default(),
             currency_id: None,
             debit_account: false,
+            balances: Vec::new(),
             autofocus: true,
         }
     }
@@ -30,6 +32,7 @@ impl AccountEditor {
             name: account.name.clone(),
             currency_id: Some(account.currency_id),
             debit_account: account.debit_account,
+            balances: account.balances.clone(),
             autofocus: true,
         }
     }
@@ -136,6 +139,7 @@ impl AccountManager {
                 name,
                 currency_id,
                 debit_account,
+                balances,
                 autofocus: _,
             } = self.account_editor.take().unwrap();
             let id = match id {
@@ -153,6 +157,7 @@ impl AccountManager {
                         name,
                         currency_id: currency_id.unwrap(),
                         debit_account,
+                        balances,
                     },
                 )
             });
