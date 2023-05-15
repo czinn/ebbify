@@ -43,11 +43,9 @@ impl UiState {
             Tab::CurrencyManager => self.currency_manager.add(ui, ctx, app_data),
             Tab::AccountManager => self.account_manager.add(ui, ctx, app_data),
             Tab::Transactions => {
-                TransactionList::new(
-                    &app_data.transactions().keys().map(|i| *i).collect(),
-                )
-                .selection(&mut self.transaction_selection)
-                .add(ui, app_data);
+                TransactionList::new(&app_data.transactions().keys().map(|i| *i).collect())
+                    .selection(&mut self.transaction_selection)
+                    .add(ui, app_data);
             }
         }
     }

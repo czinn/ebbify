@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, RichText, Ui, Window};
 
-use crate::data::{Account, AppData, Balance};
+use crate::data::{next_id, Account, AppData, Balance};
 use crate::widgets::CurrencyPicker;
 
 struct AccountEditor {
@@ -144,10 +144,7 @@ impl AccountManager {
             } = self.account_editor.take().unwrap();
             let id = match id {
                 Some(id) => id,
-                None => app_data
-                    .accounts()
-                    .last_key_value()
-                    .map_or(0, |(k, _)| *k + 1),
+                None => next_id(app_data.accounts()),
             };
             app_data.accounts_mut(|accounts| {
                 accounts.insert(

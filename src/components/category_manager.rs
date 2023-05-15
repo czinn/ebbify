@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, Ui, Window};
 
-use crate::data::{AmortizationType, AppData, Category, CategoryNode};
+use crate::data::{next_id, AmortizationType, AppData, Category, CategoryNode};
 use crate::widgets::CategoryPicker;
 
 #[derive(Default)]
@@ -144,10 +144,7 @@ impl CategoryManager {
             } = self.category_editor.take().unwrap();
             let id = match id {
                 Some(id) => id,
-                None => app_data
-                    .categories()
-                    .last_key_value()
-                    .map_or(0, |(k, _)| *k + 1),
+                None => next_id(app_data.categories()),
             };
             app_data.categories_mut(|categories| {
                 categories.insert(

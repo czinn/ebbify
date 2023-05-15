@@ -364,3 +364,7 @@ impl AppData {
         &self.category_trees
     }
 }
+
+pub fn next_id<T>(map: &BTreeMap<u32, T>) -> u32 {
+    map.last_key_value().map_or(0, |(k, _)| *k + 1)
+}

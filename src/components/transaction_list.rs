@@ -18,10 +18,12 @@ impl TransactionsSource<'_> {
         }
     }
 
-    fn iter_ids<'b>(&'b self) -> Box<dyn Iterator<Item=&'b u32> + 'b> {
+    fn iter_ids<'b>(&'b self) -> Box<dyn Iterator<Item = &'b u32> + 'b> {
         match &self {
             TransactionsSource::Ids(ids) => Box::new(ids.iter()),
-            TransactionsSource::Transactions(transactions) => Box::new(transactions.iter().map(|t| &t.id)),
+            TransactionsSource::Transactions(transactions) => {
+                Box::new(transactions.iter().map(|t| &t.id))
+            }
         }
     }
 }
@@ -106,54 +108,48 @@ impl<'a> TransactionList<'a> {
                 });
             })
             .body(|body| {
-                body.rows(
-                    row_height,
-                    self.transactions.len(),
-                    |row_index, mut row| {
-                        let transaction = match &self.transactions {
-                            TransactionsSource::Ids(ids) => {
-                                app_data.transactions().get(&ids[row_index]).unwrap()
-                            }
-                            TransactionsSource::Transactions(transactions) => {
-                                &transactions[row_index]
-                            }
-                        };
-                        let account = app_data.accounts().get(&transaction.account_id).unwrap();
-                        let currency = app_data.currencies().get(&account.currency_id).unwrap();
-                        match &mut self.selection {
-                            Some(selection) => {
-                                let row_selected = selection.contains(&transaction.id);
-                                let mut checked = row_selected;
-                                row.col(|ui| {
-                                    ui.checkbox(&mut checked, "");
-                                });
-                                if row_selected != checked {
-                                    if checked {
-                                        (*selection).insert(transaction.id);
-                                    } else {
-                                        (*selection).remove(&transaction.id);
-                                    }
+                body.rows(row_height, self.transactions.len(), |row_index, mut row| {
+                    let transaction = match &self.transactions {
+                        TransactionsSource::Ids(ids) => {
+                            app_data.transactions().get(&ids[row_index]).unwrap()
+                        }
+                        TransactionsSource::Transactions(transactions) => &transactions[row_index],
+                    };
+                    let account = app_data.accounts().get(&transaction.account_id).unwrap();
+                    let currency = app_data.currencies().get(&account.currency_id).unwrap();
+                    match &mut self.selection {
+                        Some(selection) => {
+                            let row_selected = selection.contains(&transaction.id);
+                            let mut checked = row_selected;
+                            row.col(|ui| {
+                                ui.checkbox(&mut checked, "");
+                            });
+                            if row_selected != checked {
+                                if checked {
+                                    (*selection).insert(transaction.id);
+                                } else {
+                                    (*selection).remove(&transaction.id);
                                 }
                             }
-                            None => (),
                         }
-                        row.col(|ui| {
-                            ui.add(Label::new(&transaction.date.to_string()).wrap(false));
-                        });
-                        row.col(|ui| {
-                            ui.add(Label::new(&account.name).wrap(false));
-                        });
-                        row.col(|ui| {
-                            ui.add(Label::new(&transaction.description).wrap(false));
-                        });
-                        row.col(|ui| {
-                            ui.add(
-                                Label::new(format!("{} {}", transaction.amount, currency.code))
-                                    .wrap(false),
-                            );
-                        });
-                    },
-                );
+                        None => (),
+                    }
+                    row.col(|ui| {
+                        ui.add(Label::new(&transaction.date.to_string()).wrap(false));
+                    });
+                    row.col(|ui| {
+                        ui.add(Label::new(&account.name).wrap(false));
+                    });
+                    row.col(|ui| {
+                        ui.add(Label::new(&transaction.description).wrap(false));
+                    });
+                    row.col(|ui| {
+                        ui.add(
+                            Label::new(format!("{} {}", transaction.amount, currency.code))
+                                .wrap(false),
+                        );
+                    });
+                });
             });
     }
 }

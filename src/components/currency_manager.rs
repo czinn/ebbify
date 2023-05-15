@@ -1,6 +1,6 @@
 use egui::{Button, Context, DragValue, Grid, RichText, Ui, Window};
 
-use crate::data::{AppData, Currency};
+use crate::data::{next_id, AppData, Currency};
 
 struct CurrencyEditor {
     id: Option<u32>,
@@ -128,10 +128,7 @@ impl CurrencyManager {
             } = self.currency_editor.take().unwrap();
             let id = match id {
                 Some(id) => id,
-                None => app_data
-                    .currencies()
-                    .last_key_value()
-                    .map_or(0, |(k, _)| *k + 1),
+                None => next_id(app_data.currencies()),
             };
             app_data.currencies_mut(|currencies| {
                 currencies.insert(
