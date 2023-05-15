@@ -45,10 +45,9 @@ impl UiState {
             Tab::Transactions => {
                 TransactionList::new(
                     &app_data.transactions().keys().map(|i| *i).collect(),
-                    app_data,
                 )
                 .selection(&mut self.transaction_selection)
-                .add(ui);
+                .add(ui, app_data);
             }
         }
     }

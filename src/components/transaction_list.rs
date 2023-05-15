@@ -3,19 +3,45 @@ use std::collections::HashSet;
 use egui::{FontSelection, Label, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
-use crate::data::AppData;
+use crate::data::{AppData, Transaction};
+
+enum TransactionsSource<'a> {
+    Ids(&'a Vec<u32>),
+    Transactions(&'a Vec<Transaction>),
+}
+
+impl TransactionsSource<'_> {
+    fn len(&self) -> usize {
+        match self {
+            Self::Ids(ids) => ids.len(),
+            Self::Transactions(transactions) => transactions.len(),
+        }
+    }
+
+    fn iter_ids<'b>(&'b self) -> Box<dyn Iterator<Item=&'b u32> + 'b> {
+        match &self {
+            TransactionsSource::Ids(ids) => Box::new(ids.iter()),
+            TransactionsSource::Transactions(transactions) => Box::new(transactions.iter().map(|t| &t.id)),
+        }
+    }
+}
 
 pub struct TransactionList<'a> {
-    transaction_ids: &'a Vec<u32>,
-    app_data: &'a AppData,
+    transactions: TransactionsSource<'a>,
     selection: Option<&'a mut HashSet<u32>>,
 }
 
 impl<'a> TransactionList<'a> {
-    pub fn new(transaction_ids: &'a Vec<u32>, app_data: &'a AppData) -> Self {
+    pub fn new(transaction_ids: &'a Vec<u32>) -> Self {
         Self {
-            transaction_ids,
-            app_data,
+            transactions: TransactionsSource::Ids(transaction_ids),
+            selection: None,
+        }
+    }
+
+    pub fn new_of_transactions(transactions: &'a Vec<Transaction>) -> Self {
+        Self {
+            transactions: TransactionsSource::Transactions(transactions),
             selection: None,
         }
     }
@@ -27,7 +53,7 @@ impl<'a> TransactionList<'a> {
         }
     }
 
-    pub fn add(mut self, ui: &mut Ui) {
+    pub fn add(mut self, ui: &mut Ui, app_data: &AppData) {
         let row_height = FontSelection::Default.resolve(ui.style()).size + 6.0;
         let builder = TableBuilder::new(ui)
             .striped(true)
@@ -44,18 +70,18 @@ impl<'a> TransactionList<'a> {
             .header(row_height, |mut header| {
                 let Self {
                     selection,
-                    transaction_ids,
+                    transactions,
                     ..
                 } = &mut self;
                 match selection {
                     Some(selection) => {
                         header.col(|ui| {
-                            let all_selected = selection.len() == transaction_ids.len();
+                            let all_selected = selection.len() == transactions.len();
                             let mut all_checked = all_selected;
                             ui.checkbox(&mut all_checked, "");
                             if all_checked != all_selected {
                                 if all_checked {
-                                    transaction_ids.iter().for_each(|id| {
+                                    transactions.iter_ids().for_each(|id| {
                                         selection.insert(*id);
                                     });
                                 } else {
@@ -82,23 +108,18 @@ impl<'a> TransactionList<'a> {
             .body(|body| {
                 body.rows(
                     row_height,
-                    self.transaction_ids.len(),
+                    self.transactions.len(),
                     |row_index, mut row| {
-                        let transaction = self
-                            .app_data
-                            .transactions()
-                            .get(&self.transaction_ids[row_index])
-                            .unwrap();
-                        let account = self
-                            .app_data
-                            .accounts()
-                            .get(&transaction.account_id)
-                            .unwrap();
-                        let currency = self
-                            .app_data
-                            .currencies()
-                            .get(&account.currency_id)
-                            .unwrap();
+                        let transaction = match &self.transactions {
+                            TransactionsSource::Ids(ids) => {
+                                app_data.transactions().get(&ids[row_index]).unwrap()
+                            }
+                            TransactionsSource::Transactions(transactions) => {
+                                &transactions[row_index]
+                            }
+                        };
+                        let account = app_data.accounts().get(&transaction.account_id).unwrap();
+                        let currency = app_data.currencies().get(&account.currency_id).unwrap();
                         match &mut self.selection {
                             Some(selection) => {
                                 let row_selected = selection.contains(&transaction.id);
