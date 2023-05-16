@@ -18,6 +18,29 @@ pub struct Account {
     pub balances: Vec<Balance>,
 }
 
+impl Account {
+    pub fn latest_balance(&self) -> Balance {
+        if self.balances.len() > 0 {
+            self.balances[self.balances.len() - 1].clone()
+        } else {
+            Balance {
+                date: Date::MIN,
+                amount: 0,
+            }
+        }
+    }
+
+    pub fn current_amount(&self, app_data: &AppData) -> i32 {
+        let Balance { date, mut amount } = self.latest_balance();
+        for transaction in app_data.transactions().values() {
+            if transaction.account_id == self.id && transaction.date > date {
+                amount += transaction.amount;
+            }
+        }
+        amount
+    }
+}
+
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum AmortizationType {
     Linear,
@@ -173,7 +196,7 @@ impl FileData {
                 account_id: id % 3,
                 date: Date::from_ymd_opt(2023, 5, id % 31 + 1).unwrap(),
                 description: format!("Transaction {}", id).into(),
-                amount: ((id as i32) % 10) * 10 - 50,
+                amount: ((id as i32) % 10) * 10 - 20,
                 transaction_group_id: None,
             });
         }

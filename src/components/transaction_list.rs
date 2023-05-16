@@ -7,6 +7,7 @@ use crate::data::{AppData, Transaction};
 
 enum TransactionsSource<'a> {
     Ids(&'a Vec<u32>),
+    #[allow(dead_code)]
     Transactions(&'a Vec<Transaction>),
 }
 
@@ -41,6 +42,7 @@ impl<'a> TransactionList<'a> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_of_transactions(transactions: &'a Vec<Transaction>) -> Self {
         Self {
             transactions: TransactionsSource::Transactions(transactions),

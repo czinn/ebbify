@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use egui::{Button, Context, Grid, RichText, Ui, Window};
 
-use crate::data::{next_id, Account, AppData, Balance};
+use crate::data::{next_id, Account, AppData, Balance, CachedValue};
 use crate::widgets::CurrencyPicker;
 
 struct AccountEditor {
@@ -41,7 +43,12 @@ impl AccountEditor {
 #[derive(Default)]
 pub struct AccountManager {
     account_editor: Option<AccountEditor>,
+    latest_balances: CachedValue<HashMap<u32, i32>>,
 }
+
+/*
+ * 
+ */
 
 impl AccountManager {
     fn credit_or_debit(debit_account: bool) -> &'static str {
@@ -52,14 +59,20 @@ impl AccountManager {
         }
     }
     pub fn add(&mut self, ui: &mut Ui, ctx: &Context, app_data: &mut AppData) {
+        let latest_balances = self.latest_balances.get(app_data, |app_data: &AppData| {
+                app_data.accounts().iter().map(|(account_id, account)| {
+                    (*account_id, account.current_amount(app_data))
+                }).collect()
+            });
         Grid::new("account-manager-grid")
-            .num_columns(4)
+            .num_columns(5)
             .spacing([40.0, 4.0])
             .striped(true)
             .show(ui, |ui| {
                 ui.label(RichText::new("Account").strong());
                 ui.label(RichText::new("Currency").strong());
                 ui.label(RichText::new("Credit/Debit").strong());
+                ui.label(RichText::new("Balance").strong());
                 ui.label(RichText::new("Edit").strong());
                 ui.end_row();
                 for account in app_data.accounts().values() {
@@ -72,6 +85,7 @@ impl AccountManager {
                             .code,
                     );
                     ui.label(Self::credit_or_debit(account.debit_account));
+                    ui.label(format!("{}", latest_balances.get(&account.id).unwrap_or(&0)));
                     if ui.button("Edit").clicked() {
                         if self.account_editor.is_none() {
                             self.account_editor = Some(AccountEditor::of_account(account));
