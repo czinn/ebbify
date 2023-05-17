@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use egui::{FontSelection, Label, RichText, Ui};
 use egui_extras::{Column, TableBuilder};
 
-use crate::data::{AppData, Transaction};
+use crate::data::{AppData, Price, Transaction};
 
 enum TransactionsSource<'a> {
     Ids(&'a Vec<u32>),
@@ -147,7 +147,7 @@ impl<'a> TransactionList<'a> {
                     });
                     row.col(|ui| {
                         ui.add(
-                            Label::new(format!("{} {}", transaction.amount, currency.code))
+                            Label::new(format!("{}", Price::new(transaction.amount, currency)))
                                 .wrap(false),
                         );
                     });

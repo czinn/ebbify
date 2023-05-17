@@ -7,6 +7,7 @@ struct CurrencyEditor {
     code: String,
     major: i32,
     equivalent_usd: f32,
+    symbol: String,
     autofocus: bool,
 }
 
@@ -17,6 +18,7 @@ impl Default for CurrencyEditor {
             code: Default::default(),
             major: 100,
             equivalent_usd: 1.0,
+            symbol: "$".into(),
             autofocus: true,
         }
     }
@@ -29,12 +31,14 @@ impl CurrencyEditor {
             code,
             major,
             equivalent_usd,
+            symbol,
         } = currency;
         Self {
             id: Some(*id),
             code: code.clone(),
             major: *major,
             equivalent_usd: *equivalent_usd,
+            symbol: symbol.clone(),
             autofocus: true,
         }
     }
@@ -110,6 +114,10 @@ impl CurrencyManager {
                             ui.label("Minor to Major");
                             ui.add(DragValue::new(&mut currency_editor.major));
                             ui.end_row();
+
+                            ui.label("Symbol");
+                            ui.text_edit_singleline(&mut currency_editor.symbol);
+                            ui.end_row();
                         });
                     let is_ok = currency_editor.code.len() > 0;
                     if ui.add_enabled(is_ok, Button::new(button_text)).clicked() {
@@ -124,6 +132,7 @@ impl CurrencyManager {
                 code,
                 major,
                 equivalent_usd,
+                symbol,
                 autofocus: _,
             } = self.currency_editor.take().unwrap();
             let id = match id {
@@ -138,6 +147,7 @@ impl CurrencyManager {
                         code,
                         major,
                         equivalent_usd,
+                        symbol,
                     },
                 )
             });

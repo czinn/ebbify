@@ -64,6 +64,7 @@ pub struct Currency {
     pub code: String,
     pub major: i32,
     pub equivalent_usd: f32,
+    pub symbol: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -173,13 +174,15 @@ impl FileData {
       "id": 0,
       "code": "USD",
       "major": 100,
-      "equivalent_usd": 1
+      "equivalent_usd": 1,
+      "symbol": "$"
     },
     {
       "id": 1,
       "code": "CAD",
       "major": 100,
-      "equivalent_usd": 0.73214
+      "equivalent_usd": 0.73214,
+      "symbol": "$"
     }
   ],
   "flows": [],

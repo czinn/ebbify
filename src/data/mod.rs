@@ -1,5 +1,6 @@
 mod cached_value;
 mod models;
+mod price;
 mod save_file;
 
 pub use cached_value::CachedValue;
@@ -7,4 +8,5 @@ pub use models::{
     next_id, Account, AmortizationType, AppData, Balance, Category, CategoryNode, Currency,
     FileData, Flow, Transaction, TransactionGroup,
 };
+pub use price::Price;
 pub use save_file::SaveFile;
