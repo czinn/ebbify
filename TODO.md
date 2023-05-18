@@ -1,6 +1,9 @@
 # Todo
 
 # V1
+- Undo
+  - Encapsulate all app data modification in DataChange type
+  - Add undo and redo stacks
 - Balance management
   - Show table of balances for an account
   - Add balance (compute initial value based on date and transactions)
