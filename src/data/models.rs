@@ -1,5 +1,5 @@
 use chrono::naive::NaiveDate as Date;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -248,6 +248,7 @@ pub struct AppData {
     redo_stack: Vec<Updates>,
     // Derived data structures
     category_trees: Vec<CategoryNode>,
+    transactions_by_date: BTreeMap<Date, BTreeSet<u32>>,
 }
 
 #[allow(dead_code)]
@@ -265,6 +266,7 @@ impl AppData {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             category_trees: Vec::new(),
+            transactions_by_date: Default::default(),
         }
     }
 
@@ -285,8 +287,10 @@ impl AppData {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             category_trees: Vec::new(),
+            transactions_by_date: Default::default(),
         };
         t.recompute_category_trees();
+        t.recompute_transactions_by_date();
         t
     }
 
@@ -306,6 +310,52 @@ impl AppData {
             .into_iter()
             .map(|id| CategoryNode::new(id, &children_map))
             .collect();
+    }
+
+    pub(super) fn recompute_transactions_by_date(&mut self) {
+        let mut transactions_by_date: BTreeMap<Date, BTreeSet<u32>> = BTreeMap::new();
+        for transaction in self.transactions.values() {
+            transactions_by_date
+                .entry(transaction.date)
+                .or_insert_with(|| BTreeSet::new())
+                .insert(transaction.id);
+        }
+    }
+
+    pub(super) fn insert_transaction(&mut self, transaction: Transaction) -> Option<Transaction> {
+        let id = transaction.id;
+        let date = transaction.date;
+        self.transactions_by_date
+            .entry(date)
+            .or_insert_with(|| BTreeSet::new())
+            .insert(id);
+        let old_transaction = self.transactions.insert(id, transaction);
+        match &old_transaction {
+            Some(old_transaction) => {
+                if old_transaction.date != date {
+                    self.transactions_by_date
+                        .get_mut(&old_transaction.date)
+                        .unwrap()
+                        .remove(&id);
+                }
+            }
+            None => (),
+        }
+        old_transaction
+    }
+
+    pub(super) fn remove_transaction(&mut self, id: u32) -> Option<Transaction> {
+        let old_transaction = self.transactions.remove(&id);
+        match &old_transaction {
+            Some(old_transaction) => {
+                self.transactions_by_date
+                    .get_mut(&old_transaction.date)
+                    .unwrap()
+                    .remove(&id);
+            }
+            None => (),
+        }
+        old_transaction
     }
 
     pub fn modification_count(&self) -> u32 {
