@@ -132,14 +132,24 @@ impl FileData {
       "name": "Debit Account",
       "currency_id": 0,
       "debit_account": true,
-      "balances": []
+      "balances": [
+        {
+          "date": "2023-05-12",
+          "amount": 3340
+        }
+      ]
     },
     {
       "id": 1,
       "name": "Credit Account",
       "currency_id": 0,
       "debit_account": false,
-      "balances": []
+      "balances": [
+        {
+          "date": "2023-05-12",
+          "amount": 3340
+        }
+      ]
     },
     {
       "id": 2,
@@ -313,9 +323,9 @@ impl AppData {
     }
 
     pub(super) fn recompute_transactions_by_date(&mut self) {
-        let mut transactions_by_date: BTreeMap<Date, BTreeSet<u32>> = BTreeMap::new();
+        self.transactions_by_date = BTreeMap::new();
         for transaction in self.transactions.values() {
-            transactions_by_date
+            self.transactions_by_date
                 .entry(transaction.date)
                 .or_insert_with(|| BTreeSet::new())
                 .insert(transaction.id);
@@ -438,6 +448,10 @@ impl AppData {
 
     pub fn category_trees(&self) -> &Vec<CategoryNode> {
         &self.category_trees
+    }
+
+    pub fn transactions_by_date(&self) -> &BTreeMap<Date, BTreeSet<u32>> {
+        &self.transactions_by_date
     }
 }
 

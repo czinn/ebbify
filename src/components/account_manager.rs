@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use egui::{Button, Context, Grid, RichText, Ui, Window};
+use egui::{Button, Context, Grid, Ui, Window};
 
+use super::BalanceManager;
 use crate::data::{next_id, Account, AppData, Balance, CachedValue, Price, Update};
 use crate::widgets::CurrencyPicker;
 
@@ -44,6 +45,7 @@ impl AccountEditor {
 pub struct AccountManager {
     account_editor: Option<AccountEditor>,
     latest_balances: CachedValue<HashMap<u32, i32>>,
+    balance_manager: Option<BalanceManager>,
 }
 
 impl AccountManager {
@@ -54,6 +56,7 @@ impl AccountManager {
             "Credit"
         }
     }
+
     pub fn add(&mut self, ui: &mut Ui, ctx: &Context, app_data: &mut AppData) {
         let latest_balances = self.latest_balances.get(app_data, |app_data: &AppData| {
             app_data
@@ -67,21 +70,28 @@ impl AccountManager {
             .spacing([40.0, 4.0])
             .striped(true)
             .show(ui, |ui| {
-                ui.label(RichText::new("Account").strong());
-                ui.label(RichText::new("Currency").strong());
-                ui.label(RichText::new("Credit/Debit").strong());
-                ui.label(RichText::new("Balance").strong());
-                ui.label(RichText::new("Edit").strong());
+                ui.strong("Account");
+                ui.strong("Currency");
+                ui.strong("Credit/Debit");
+                ui.strong("Balance");
+                ui.strong("Edit");
                 ui.end_row();
                 for account in app_data.accounts().values() {
                     let currency = app_data.currencies().get(&account.currency_id).unwrap();
                     ui.label(&account.name);
                     ui.label(&currency.code);
                     ui.label(Self::credit_or_debit(account.debit_account));
-                    ui.label(format!(
-                        "{}",
-                        Price::new(*latest_balances.get(&account.id).unwrap_or(&0), currency),
-                    ));
+                    if ui
+                        .link(format!(
+                            "{}",
+                            Price::new(*latest_balances.get(&account.id).unwrap_or(&0), currency),
+                        ))
+                        .clicked()
+                    {
+                        if self.balance_manager.is_none() {
+                            self.balance_manager = Some(BalanceManager::new(account.id));
+                        }
+                    }
                     if ui.button("Edit").clicked() {
                         if self.account_editor.is_none() {
                             self.account_editor = Some(AccountEditor::of_account(account));
@@ -141,6 +151,18 @@ impl AccountManager {
                         clicked_create = true;
                     }
                 });
+        }
+
+        let mut balance_is_open = true;
+        if let Some(balance_manager) = &mut self.balance_manager {
+            Window::new("Account Balances")
+                .open(&mut balance_is_open)
+                .show(ctx, |ui| {
+                    balance_manager.add(ui, app_data);
+                });
+        }
+        if !balance_is_open {
+            self.balance_manager = None;
         }
 
         if clicked_create {

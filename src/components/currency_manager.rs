@@ -1,4 +1,4 @@
-use egui::{Button, Context, DragValue, Grid, RichText, Ui, Window};
+use egui::{Button, Context, DragValue, Grid, Ui, Window};
 
 use crate::data::{next_id, AppData, Currency, Update};
 
@@ -56,10 +56,10 @@ impl CurrencyManager {
             .spacing([40.0, 4.0])
             .striped(true)
             .show(ui, |ui| {
-                ui.label(RichText::new("Currency").strong());
-                ui.label(RichText::new("Equivalent USD").strong());
-                ui.label(RichText::new("Minor to Major").strong());
-                ui.label(RichText::new("Edit").strong());
+                ui.strong("Currency");
+                ui.strong("Equivalent USD");
+                ui.strong("Minor to Major");
+                ui.strong("Edit");
                 ui.end_row();
                 for currency in app_data.currencies().values() {
                     ui.label(&currency.code);

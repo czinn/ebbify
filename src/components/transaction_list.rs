@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use egui::{FontSelection, Label, RichText, Ui};
+use egui::{FontSelection, Label, Ui};
 use egui_extras::{Column, TableBuilder};
 
 use crate::data::{AppData, Price, Transaction};
@@ -97,16 +97,16 @@ impl<'a> TransactionList<'a> {
                     None => (),
                 }
                 header.col(|ui| {
-                    ui.label(RichText::new("Date").strong());
+                    ui.strong("Date");
                 });
                 header.col(|ui| {
-                    ui.label(RichText::new("Account").strong());
+                    ui.strong("Account");
                 });
                 header.col(|ui| {
-                    ui.label(RichText::new("Description").strong());
+                    ui.strong("Description");
                 });
                 header.col(|ui| {
-                    ui.label(RichText::new("Amount").strong());
+                    ui.strong("Amount");
                 });
             })
             .body(|body| {

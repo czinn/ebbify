@@ -2,15 +2,15 @@
 
 # V1
 - Balance management
-  - Show table of balances for an account
   - Add balance (compute initial value based on date and transactions)
-  - Show sum of transactions between each pair of balances, highlight if unequal to diff in balances
   - Remove balance
+  - Button to update balance to match delta
 - Transaction management
   - Manually add transaction
   - Edit transactions
   - Remove transactions
   - Add transaction to fix balance diff in balance table
+  - In balance manager: button to insert new transaction equal to diff
 - Import transactions from statements
   - Conversion from parsed statement to Statement and list of Transactions
   - Preview (and edit? filter?) transactions before importing

@@ -100,6 +100,7 @@ impl Update {
 }
 
 pub struct Updates {
+    #[allow(dead_code)]
     time: SystemTime,
     updates: Vec<Update>,
 }
