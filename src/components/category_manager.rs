@@ -1,6 +1,6 @@
 use egui::{Button, Context, Grid, Ui, Window};
 
-use crate::data::{next_id, AmortizationType, AppData, Category, CategoryNode};
+use crate::data::{next_id, AmortizationType, AppData, Category, CategoryNode, Update};
 use crate::widgets::CategoryPicker;
 
 #[derive(Default)]
@@ -79,7 +79,7 @@ impl CategoryManager {
             }
         }
         if let Some(node_to_remove) = node_to_remove {
-            app_data.categories_mut(|categories| categories.remove(&node_to_remove));
+            app_data.perform_update(vec![Update::DeleteCategory(node_to_remove)]);
         }
 
         if ui.button("New Category").clicked() {
@@ -146,18 +146,13 @@ impl CategoryManager {
                 Some(id) => id,
                 None => next_id(app_data.categories()),
             };
-            app_data.categories_mut(|categories| {
-                categories.insert(
-                    id,
-                    Category {
-                        id,
-                        name,
-                        parent_id,
-                        default_amortization_type,
-                        default_amortization_length,
-                    },
-                )
-            });
+            app_data.perform_update(vec![Update::SetCategory(Category {
+                id,
+                name,
+                parent_id,
+                default_amortization_type,
+                default_amortization_length,
+            })]);
         }
 
         if !is_open || clicked_create {

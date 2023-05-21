@@ -42,6 +42,15 @@ impl MenuBar {
             Modifiers::COMMAND.plus(Modifiers::SHIFT),
             Key::L,
         );
+        let (undo_button, mut undo_pressed) =
+            Self::button_with_shortcut(ui, ctx, "Undo", Modifiers::COMMAND, Key::Z);
+        let (redo_button, mut redo_pressed) = Self::button_with_shortcut(
+            ui,
+            ctx,
+            "Redo",
+            Modifiers::COMMAND.plus(Modifiers::SHIFT),
+            Key::Z,
+        );
 
         egui::menu::bar(ui, |ui| {
             ui.menu_button("File", |ui| {
@@ -63,6 +72,32 @@ impl MenuBar {
                     load_sample_pressed = true;
                     ui.close_menu();
                 }
+            });
+            ui.menu_button("Edit", |ui| {
+                ui.add_enabled_ui(
+                    save_file
+                        .as_ref()
+                        .map(|s| s.app_data.can_undo())
+                        .unwrap_or(false),
+                    |ui| {
+                        if ui.add(undo_button).clicked() {
+                            undo_pressed = true;
+                            ui.close_menu();
+                        }
+                    },
+                );
+                ui.add_enabled_ui(
+                    save_file
+                        .as_ref()
+                        .map(|s| s.app_data.can_redo())
+                        .unwrap_or(false),
+                    |ui| {
+                        if ui.add(redo_button).clicked() {
+                            redo_pressed = true;
+                            ui.close_menu();
+                        }
+                    },
+                );
             });
         });
 
@@ -107,6 +142,20 @@ impl MenuBar {
         if load_sample_pressed {
             *save_file = Some(SaveFile::load_sample());
             save_file_changed = true;
+        }
+
+        if undo_pressed {
+            match save_file {
+                Some(save_file) => save_file.app_data.undo(),
+                None => (),
+            }
+        }
+
+        if redo_pressed {
+            match save_file {
+                Some(save_file) => save_file.app_data.redo(),
+                None => (),
+            }
         }
 
         MenuBarResponse { save_file_changed }

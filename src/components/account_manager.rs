@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use egui::{Button, Context, Grid, RichText, Ui, Window};
 
-use crate::data::{next_id, Account, AppData, Balance, CachedValue, Price};
+use crate::data::{next_id, Account, AppData, Balance, CachedValue, Price, Update};
 use crate::widgets::CurrencyPicker;
 
 struct AccountEditor {
@@ -156,18 +156,13 @@ impl AccountManager {
                 Some(id) => id,
                 None => next_id(app_data.accounts()),
             };
-            app_data.accounts_mut(|accounts| {
-                accounts.insert(
-                    id,
-                    Account {
-                        id,
-                        name,
-                        currency_id: currency_id.unwrap(),
-                        debit_account,
-                        balances,
-                    },
-                )
-            });
+            app_data.perform_update(vec![Update::SetAccount(Account {
+                id,
+                name,
+                currency_id: currency_id.unwrap(),
+                debit_account,
+                balances,
+            })]);
         }
 
         if !is_open || clicked_create {

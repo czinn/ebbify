@@ -2,6 +2,7 @@ mod cached_value;
 mod models;
 mod price;
 mod save_file;
+mod updates;
 
 pub use cached_value::CachedValue;
 pub use models::{
@@ -10,3 +11,4 @@ pub use models::{
 };
 pub use price::Price;
 pub use save_file::SaveFile;
+pub use updates::{Update, Updates};

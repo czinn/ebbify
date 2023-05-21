@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use super::{Update, Updates};
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Balance {
     pub date: Date,
@@ -233,14 +235,17 @@ impl CategoryNode {
 
 pub struct AppData {
     // Core data structures
-    accounts: BTreeMap<u32, Account>,
-    categories: BTreeMap<u32, Category>,
-    currencies: BTreeMap<u32, Currency>,
-    flows: BTreeMap<u32, Flow>,
-    transactions: BTreeMap<u32, Transaction>,
-    transaction_groups: BTreeMap<u32, TransactionGroup>,
-    // Modification count
+    pub(super) accounts: BTreeMap<u32, Account>,
+    pub(super) categories: BTreeMap<u32, Category>,
+    pub(super) currencies: BTreeMap<u32, Currency>,
+    pub(super) flows: BTreeMap<u32, Flow>,
+    pub(super) transactions: BTreeMap<u32, Transaction>,
+    pub(super) transaction_groups: BTreeMap<u32, TransactionGroup>,
+    // Undo and redo
     modification_count: u32,
+    max_modification_count: u32,
+    undo_stack: Vec<Updates>,
+    redo_stack: Vec<Updates>,
     // Derived data structures
     category_trees: Vec<CategoryNode>,
 }
@@ -256,6 +261,9 @@ impl AppData {
             transactions: Default::default(),
             transaction_groups: Default::default(),
             modification_count: 0,
+            max_modification_count: 0,
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
             category_trees: Vec::new(),
         }
     }
@@ -273,13 +281,16 @@ impl AppData {
                 .map(|x| (x.id, x))
                 .collect(),
             modification_count: 0,
+            max_modification_count: 0,
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
             category_trees: Vec::new(),
         };
         t.recompute_category_trees();
         t
     }
 
-    fn recompute_category_trees(&mut self) {
+    pub(super) fn recompute_category_trees(&mut self) {
         let mut roots: Vec<u32> = Vec::new();
         let mut children_map: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
         for (id, category) in self.categories.iter() {
@@ -312,78 +323,67 @@ impl AppData {
         }
     }
 
-    pub fn accounts(&self) -> &BTreeMap<u32, Account> {
-        &self.accounts
+    pub fn perform_update(&mut self, updates: Vec<Update>) {
+        let updates = Updates::new(updates);
+        let reverse_updates = updates.apply(self);
+        self.modification_count = self.max_modification_count + 1;
+        self.max_modification_count = self.modification_count;
+        self.undo_stack.push(reverse_updates);
+        self.redo_stack.clear();
     }
 
-    pub fn accounts_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, Account>) -> R,
-    {
-        self.modification_count += 1;
-        f(&mut self.accounts)
+    pub fn can_undo(&self) -> bool {
+        self.undo_stack.len() > 0
+    }
+
+    pub fn undo(&mut self) {
+        match self.undo_stack.pop() {
+            Some(updates) => {
+                let reverse_updates = updates.apply(self);
+                self.redo_stack.push(reverse_updates);
+                self.modification_count -= 1;
+            }
+            None => (),
+        }
+    }
+
+    pub fn can_redo(&self) -> bool {
+        self.redo_stack.len() > 0
+    }
+
+    pub fn redo(&mut self) {
+        match self.redo_stack.pop() {
+            Some(updates) => {
+                let reverse_updates = updates.apply(self);
+                self.undo_stack.push(reverse_updates);
+                self.modification_count += 1;
+            }
+            None => (),
+        }
+    }
+
+    pub fn accounts(&self) -> &BTreeMap<u32, Account> {
+        &self.accounts
     }
 
     pub fn categories(&self) -> &BTreeMap<u32, Category> {
         &self.categories
     }
 
-    pub fn categories_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, Category>) -> R,
-    {
-        self.modification_count += 1;
-        let result = f(&mut self.categories);
-        self.recompute_category_trees();
-        result
-    }
-
     pub fn currencies(&self) -> &BTreeMap<u32, Currency> {
         &self.currencies
-    }
-
-    pub fn currencies_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, Currency>) -> R,
-    {
-        self.modification_count += 1;
-        f(&mut self.currencies)
     }
 
     pub fn flows(&self) -> &BTreeMap<u32, Flow> {
         &self.flows
     }
 
-    pub fn flows_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, Flow>) -> R,
-    {
-        self.modification_count += 1;
-        f(&mut self.flows)
-    }
-
     pub fn transactions(&self) -> &BTreeMap<u32, Transaction> {
         &self.transactions
     }
 
-    pub fn transactions_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, Transaction>) -> R,
-    {
-        self.modification_count += 1;
-        f(&mut self.transactions)
-    }
-
     pub fn transaction_groups(&self) -> &BTreeMap<u32, TransactionGroup> {
         &self.transaction_groups
-    }
-
-    pub fn transaction_groups_mut<F, R>(&mut self, f: F) -> R
-    where
-        F: FnOnce(&mut BTreeMap<u32, TransactionGroup>) -> R,
-    {
-        self.modification_count += 1;
-        f(&mut self.transaction_groups)
     }
 
     pub fn category_trees(&self) -> &Vec<CategoryNode> {

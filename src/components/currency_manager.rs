@@ -1,6 +1,6 @@
 use egui::{Button, Context, DragValue, Grid, RichText, Ui, Window};
 
-use crate::data::{next_id, AppData, Currency};
+use crate::data::{next_id, AppData, Currency, Update};
 
 struct CurrencyEditor {
     id: Option<u32>,
@@ -139,18 +139,13 @@ impl CurrencyManager {
                 Some(id) => id,
                 None => next_id(app_data.currencies()),
             };
-            app_data.currencies_mut(|currencies| {
-                currencies.insert(
-                    id,
-                    Currency {
-                        id,
-                        code,
-                        major,
-                        equivalent_usd,
-                        symbol,
-                    },
-                )
-            });
+            app_data.perform_update(vec![Update::SetCurrency(Currency {
+                id,
+                code,
+                major,
+                equivalent_usd,
+                symbol,
+            })]);
         }
 
         if !is_open || clicked_create {
