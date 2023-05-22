@@ -158,7 +158,7 @@ impl AccountManager {
             Window::new("Account Balances")
                 .open(&mut balance_is_open)
                 .show(ctx, |ui| {
-                    balance_manager.add(ui, app_data);
+                    balance_manager.add(ui, ctx, app_data);
                 });
         }
         if !balance_is_open {

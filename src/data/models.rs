@@ -1,5 +1,6 @@
 use chrono::naive::NaiveDate as Date;
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::Bound::{Included, Excluded};
 
 use serde::{Deserialize, Serialize};
 
@@ -21,25 +22,36 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn latest_balance(&self) -> Balance {
-        if self.balances.len() > 0 {
-            self.balances[self.balances.len() - 1].clone()
-        } else {
+    pub fn latest_balance_before(&self, date: Date) -> Balance {
+        let index = self.balances.partition_point(|b| b.date < date);
+        if index == 0 {
             Balance {
                 date: Date::MIN,
                 amount: 0,
             }
+        } else {
+            self.balances[index - 1].clone()
         }
     }
 
-    pub fn current_amount(&self, app_data: &AppData) -> i32 {
-        let Balance { date, mut amount } = self.latest_balance();
-        for transaction in app_data.transactions().values() {
-            if transaction.account_id == self.id && transaction.date > date {
-                amount += transaction.amount;
+    pub fn balance_on_date(&self, app_data: &AppData, date: Date) -> i32 {
+        // It would be faster to use the balance for the date if it exists, but then it would not
+        // be possible to show the computed balance if it differs from the balance on that date
+        // (since the computed balance would always just be the exact value on that date)
+        let Balance { date: balance_date, mut amount } = self.latest_balance_before(date);
+        for (_, transactions_on_date) in app_data.transactions_by_date().range((Excluded(balance_date), Included(date))) {
+            for transaction_id in transactions_on_date {
+                let transaction = app_data.transactions().get(transaction_id).unwrap();
+                if transaction.account_id == self.id {
+                    amount += transaction.amount;
+                }
             }
         }
         amount
+    }
+
+    pub fn current_amount(&self, app_data: &AppData) -> i32 {
+        self.balance_on_date(app_data, Date::MAX)
     }
 }
 

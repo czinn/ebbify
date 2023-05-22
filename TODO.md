@@ -1,10 +1,10 @@
 # Todo
 
 # V1
-- Balance management
-  - Add balance (compute initial value based on date and transactions)
-  - Remove balance
-  - Button to update balance to match delta
+- Better widgets
+  - Validated textbox (reverts to previous value if not valid)
+  - Text-based date input
+  - Price input (when editing, shows only numbers, but shows currency in resting state, and validates input)
 - Transaction management
   - Manually add transaction
   - Edit transactions
