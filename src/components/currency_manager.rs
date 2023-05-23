@@ -1,6 +1,7 @@
-use egui::{Button, Context, DragValue, Grid, Ui, Window};
+use egui::{Button, Context, Grid, Ui, Window};
 
 use crate::data::{next_id, AppData, Currency, Update};
+use crate::widgets::stringable_input;
 
 struct CurrencyEditor {
     id: Option<u32>,
@@ -104,15 +105,11 @@ impl CurrencyManager {
                             ui.end_row();
 
                             ui.label("Equivalent USD");
-                            ui.add(
-                                DragValue::new(&mut currency_editor.equivalent_usd)
-                                    .speed(0.01)
-                                    .min_decimals(2),
-                            );
+                            ui.add(stringable_input(&mut currency_editor.equivalent_usd));
                             ui.end_row();
 
                             ui.label("Minor to Major");
-                            ui.add(DragValue::new(&mut currency_editor.major));
+                            ui.add(stringable_input(&mut currency_editor.major));
                             ui.end_row();
 
                             ui.label("Symbol");

@@ -1,8 +1,8 @@
 use chrono::naive::NaiveDate as Date;
-use egui::{Button, Color32, Context, DragValue, Grid, RichText, Window, Ui};
-use egui_extras::DatePickerButton;
+use egui::{Button, Color32, Context, Grid, RichText, Ui, Window};
 
 use crate::data::{AppData, Balance, CachedValue, Price, Update};
+use crate::widgets::{date_input, price_input};
 
 struct BalanceEditor {
     new_balance: bool,
@@ -131,7 +131,10 @@ impl BalanceManager {
                 }
             });
 
-        if ui.add_enabled(self.balance_editor.is_none(), Button::new("New Balance")).clicked() {
+        if ui
+            .add_enabled(self.balance_editor.is_none(), Button::new("New Balance"))
+            .clicked()
+        {
             self.balance_editor = Some(Default::default());
         }
 
@@ -155,7 +158,7 @@ impl BalanceManager {
                             ui.label("Date");
                             if balance_editor.new_balance {
                                 let old_date = balance_editor.date.clone();
-                                ui.add(DatePickerButton::new(&mut balance_editor.date));
+                                ui.add(date_input(&mut balance_editor.date));
                                 if old_date != balance_editor.date {
                                     balance_editor.computed_amount.invalidate();
                                 }
@@ -164,26 +167,22 @@ impl BalanceManager {
                             }
                             ui.end_row();
 
-                            let computed = *balance_editor.computed_amount.get(app_data, |app_data: &AppData| {
-                                account.balance_on_date(app_data, balance_editor.date)
-                            });
+                            let computed = *balance_editor.computed_amount.get(
+                                app_data,
+                                |app_data: &AppData| {
+                                    account.balance_on_date(app_data, balance_editor.date)
+                                },
+                            );
 
                             ui.label("Amount");
                             ui.horizontal(|ui| {
-                                ui.horizontal(|ui| {
-                                    ui.spacing_mut().item_spacing.x = 1.0;
-                                    ui.label(&currency.symbol);
-                                    let mut edit_amount = (balance_editor.amount.unwrap_or(computed) as f32) / (currency.major as f32);
-                                    ui.add(DragValue::new(&mut edit_amount).min_decimals(2).max_decimals(2));
-                                    let edit_amount: i32 = (edit_amount * (currency.major as f32)).round() as i32;
-                                    balance_editor.amount =
-                                        if edit_amount != computed {
-                                            Some(edit_amount)
-                                        } else {
-                                            None
-                                        };
-                                    ui.label(&currency.code);
-                                });
+                                let mut edit_amount = balance_editor.amount.unwrap_or(computed);
+                                ui.add(price_input(&mut edit_amount, currency));
+                                balance_editor.amount = if edit_amount != computed {
+                                    Some(edit_amount)
+                                } else {
+                                    None
+                                };
                                 if balance_editor.amount.is_some() {
                                     if ui.button("⟲").clicked() {
                                         balance_editor.amount = None;
@@ -197,12 +196,19 @@ impl BalanceManager {
                             ui.end_row();
                         });
 
-                    let is_ok = !balance_editor.new_balance || account.balances.binary_search_by(|b| b.date.cmp(&balance_editor.date)).is_err();
+                    let is_ok = !balance_editor.new_balance
+                        || account
+                            .balances
+                            .binary_search_by(|b| b.date.cmp(&balance_editor.date))
+                            .is_err();
                     if ui.add_enabled(is_ok, Button::new(button_text)).clicked() {
                         clicked_create = true;
                     }
                     if !is_ok {
-                        ui.label(RichText::new("Balance already exists for that date").color(Color32::RED));
+                        ui.label(
+                            RichText::new("Balance already exists for that date")
+                                .color(Color32::RED),
+                        );
                     }
                 });
         }
@@ -213,21 +219,21 @@ impl BalanceManager {
                 new_balance,
                 date,
                 amount,
-                computed_amount: _
+                computed_amount: _,
             } = self.balance_editor.take().unwrap();
             let amount = match amount {
                 Some(amount) => amount,
                 None => account.balance_on_date(app_data, date),
             };
-            let balance = Balance {
-                date,
-                amount,
-            };
+            let balance = Balance { date, amount };
             if new_balance {
                 let index = account.balances.partition_point(|b| b.date < date);
                 account.balances.insert(index, balance);
             } else {
-                let index = account.balances.binary_search_by(|b| b.date.cmp(&date)).unwrap();
+                let index = account
+                    .balances
+                    .binary_search_by(|b| b.date.cmp(&date))
+                    .unwrap();
                 account.balances[index] = balance;
             }
             app_data.perform_update(vec![Update::SetAccount(account)]);

@@ -9,6 +9,6 @@ pub use models::{
     next_id, Account, AmortizationType, AppData, Balance, Category, CategoryNode, Currency,
     FileData, Flow, Transaction, TransactionGroup,
 };
-pub use price::Price;
+pub use price::{NumericPrice, Price};
 pub use save_file::SaveFile;
 pub use updates::{Update, Updates};

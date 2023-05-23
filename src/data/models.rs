@@ -1,6 +1,6 @@
 use chrono::naive::NaiveDate as Date;
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::Bound::{Included, Excluded};
+use std::ops::Bound::{Excluded, Included};
 
 use serde::{Deserialize, Serialize};
 
@@ -38,8 +38,14 @@ impl Account {
         // It would be faster to use the balance for the date if it exists, but then it would not
         // be possible to show the computed balance if it differs from the balance on that date
         // (since the computed balance would always just be the exact value on that date)
-        let Balance { date: balance_date, mut amount } = self.latest_balance_before(date);
-        for (_, transactions_on_date) in app_data.transactions_by_date().range((Excluded(balance_date), Included(date))) {
+        let Balance {
+            date: balance_date,
+            mut amount,
+        } = self.latest_balance_before(date);
+        for (_, transactions_on_date) in app_data
+            .transactions_by_date()
+            .range((Excluded(balance_date), Included(date)))
+        {
             for transaction_id in transactions_on_date {
                 let transaction = app_data.transactions().get(transaction_id).unwrap();
                 if transaction.account_id == self.id {
